@@ -1,11 +1,11 @@
 # Solid-mechanics
-#### Beest Kramer van Santen (BKS) potential is used to simulated SiO$_2$ system
+#### Beest Kramer van Santen (BKS) potential is used to simulated SiO2 system
 Vollmayr, K., Kob, W., & Binder, K. (1996). Cooling-rate effects in amorphous silica: A computer-simulation study. Physical Review B, 54(22), 15808.
 
 #### Embedded Atom Method (EAM) potential is used to simulated Cu-Zr metallic glass system
 Mendelev, M. I., Kramer, M. J., Ott, R. T., Sordelet, D. J., Yagodin, D., & Popel, P. J. P. M. (2009). Development of suitable interatomic potentials for simulation of liquid and amorphous Cu–Zr alloys. Philosophical Magazine, 89(11), 967-987.
 
-#### Neuron network potential from our previews work is used to simulated Li$_3$PS$_4$ solid electrolytes
+#### Neuron network potential from our previews work is used to simulated Li3PS4 solid electrolytes
 Chen, Z., Du, T., Krishnan, N. M., Yue, Y., & Smedskjaer, M. M. (2024). Disorder-induced enhancement of lithium-ion transport in solid-state electrolytes. arXiv preprint arXiv:2401.05151.
 
 [LiPS potential file](https://github.com/OxideGlassGroupAAU/LiPS)
