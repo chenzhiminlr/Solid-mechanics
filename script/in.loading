@@ -1,0 +1,89 @@
+dimension	    3
+units           real
+boundary        p p p
+atom_style      charge
+
+variable	 Case string "Fracture"
+read_data    ../crystal.data nocoeff
+
+# FORCE FIELD
+
+include         ../../pot_bks.mod
+thermo		    1000
+
+# Volumes
+variable	V_true		equal		vol
+
+# Constants
+variable	Temperature	equal		300.0
+variable	Pressure	equal		0
+
+# Compute Tcom
+compute		Tcom		all		temp/com
+
+# PE per atom and system
+compute		PEAtom		all		pe/atom
+compute		PEAll		all		reduce	sum	c_PEAtom
+
+# Stress per atom
+compute		StrAtom		all		    stress/atom Tcom
+variable	StrAtomXX	atom		c_StrAtom[1]*0.000101325	#  0.0001 = bar2GPa
+variable	StrAtomYY	atom		c_StrAtom[2]*0.000101325	#  0.0001 = bar2GPa
+variable	StrAtomZZ	atom		c_StrAtom[3]*0.000101325	#  0.0001 = bar2GPa
+variable	StrAtomXY	atom		c_StrAtom[4]*0.000101325	#  0.0001 = bar2GPa
+variable	StrAtomXZ	atom		c_StrAtom[5]*0.000101325	#  0.0001 = bar2GPa
+variable	StrAtomYZ	atom		c_StrAtom[6]*0.000101325	#  0.0001 = bar2GPa
+variable	PressY	    equal		-pyy*0.000101325
+
+# Stress of farfields
+compute		Str	    all         reduce sum c_StrAtom[1] c_StrAtom[2] c_StrAtom[3] c_StrAtom[4] c_StrAtom[5] c_StrAtom[6]
+variable	StrXX	equal		c_Str[1]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+variable	StrYY	equal		c_Str[2]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+variable	StrZZ	equal		c_Str[3]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+variable	StrXY	equal		c_Str[4]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+variable	StrXZ	equal		c_Str[5]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+variable	StrYZ	equal		c_Str[6]/${V_true}*0.000101325	#  0.0001 = bar2GPa
+
+# Dumping frequency
+variable	nevery		equal		1
+variable	nrepeat		equal		200
+variable	nfreq		equal		${nevery}*${nrepeat}
+
+# Equilibration with NPT
+
+minimize        1.0e-8 1.0e-8 10000 10000
+
+fix             NPT all npt temp ${Temperature} ${Temperature} $(100*dt) x ${Pressure} ${Pressure} $(1000*dt) y ${Pressure} ${Pressure} $(1000*dt)  z ${Pressure} ${Pressure} $(1000*dt)
+
+thermo_style	custom step  lx  ly  lz pe  etotal density c_Tcom
+run             100000
+reset_timestep	0
+write_data      relaxed_fracture.data
+
+# Strains
+variable 	lenX		equal		lx
+variable	lenY		equal		ly
+variable	lenZ		equal		lz
+variable	strainX		equal		(v_lenX-${lenX})/${lenX}
+variable	strainY		equal		(v_lenY-${lenY})/${lenY}
+variable	strainZ		equal		(v_lenZ-${lenZ})/${lenZ}
+
+# DUMPING
+
+dump		DumpCFG		all       	custom		20000	video_*.cfg	id	type   x    y    z   v_StrAtomXX v_StrAtomYY v_StrAtomZZ v_StrAtomXY v_StrAtomXZ v_StrAtomYZ c_PEAtom v_VMS
+
+# Tensile loading
+
+unfix		NPT
+
+fix		    NVT			all		nvt	temp 	${Temperature} ${Temperature} $(100*dt)
+fix_modify	NVT		temp	Tcom
+
+variable	velocity	   	equal   ${lenY}*${define_your_loading_rate} # define_your_loading_rate need to be defined in the input script
+fix 		deform		all	deform 1 y vel  ${velocity}
+
+fix         Re_Primary all ave/time ${nevery} ${nrepeat} ${nfreq} v_lenX v_lenY v_lenZ v_strainY v_PressY file Re_Primary_${Case}.txt title2 "Step Lx Ly Lz StrainY StressYY"
+
+thermo_style custom step  lx  ly  lz pe  etotal pxx density c_Tcom v_strainY v_PressY
+
+run 		2000000

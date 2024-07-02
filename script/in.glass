@@ -1,0 +1,41 @@
+units           real
+boundary        p p p
+atom_style      charge
+variable seed equal 4928459
+
+read_data	    ../alpha_cristobalite.data
+include         ../pot_bks.mod
+
+thermo          1000
+thermo_style    custom step temp pe ke etotal press vol lx ly lz density spcpu
+
+velocity	    all create 5000 ${seed} dist gaussian units box
+
+# dump            1 all custom 2000 mdmelt.lammpstrj id type x y z
+fix             1 all nvt temp 5000 5000 $(100*dt)
+run 	        100000
+unfix	        1
+fix             1 all nvt temp 4000 3000 $(100*dt)
+run 	        10000
+unfix	        1
+# undump          1
+
+# dump            1 all custom 27000 mdquench.lammpstrj id type x y z
+fix	            1 all npt temp 3000 300 $(100*dt) iso 0 0 $(1000*dt)
+run	            2700000
+unfix	        1
+# undump          1
+
+fix	            1 all npt temp 300 300 $(100*dt) iso 0 0 $(1000*dt)
+run	            1000000
+unfix	        1
+fix             1 all nvt temp 300 300 $(100*dt)
+run 	        1000000
+unfix	        1
+
+# dump            1 all custom 1000 mdstat.lammpstrj id type x y z
+fix             1 all nvt temp 300 300 $(100*dt)
+run 	        100000
+unfix	        1
+# undump          1
+write_data	    glass.data
