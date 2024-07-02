@@ -3,8 +3,8 @@
 ## Content
 - ```sample_data```: Sample datasets for SiO<sub>2</sub> glass and crystal.
 - ```sample_potential```: Sample BKS potential for SiO<sub>2</sub> glass and crystal.
-- ```scripts```: shell and LAMMPS scripts for running simulations and loading.
-- python scripts: data processing and plot the figures.
+- ```scripts```: Shell and LAMMPS scripts for running simulations and loading.
+- python scripts: Data processing and plot the figures.
 
 ## Dependencies
 Python module dependencies are:
